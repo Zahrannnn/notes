@@ -1,0 +1,17 @@
+services:
+  app:
+    # IMAGE_TAG is required: the deploy pipeline pins it to the commit SHA
+    # (sha-abc1234). For local use, `make` sets it from APP_VERSION.
+    image: ${HUB_URL:?HUB_URL is required}/${APP_NAME:?APP_NAME is required}:${IMAGE_TAG:?IMAGE_TAG is required}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - '${APP_PORT:-8080}:80'
+    environment:
+      # Runtime env: injected at container start via env.sh -> env.js
+      - VITE_APP_NAME=${VITE_APP_NAME:-}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-}
+      - VITE_API_TIMEOUT_MS=${VITE_API_TIMEOUT_MS:-}
+      - VITE_ENABLE_AXE=${VITE_ENABLE_AXE:-false}

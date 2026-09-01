@@ -1,0 +1,77 @@
+# CI/CD for the Vite starter.
+#
+# - verify:  merge requests and main — lint, typecheck, tests, build.
+# - publish: main — build the image and push it to the registry, tagged with
+#            the commit SHA (immutable) plus a moving `main` tag.
+# - deploy:  main — runs on the gitlab-runner installed on the production
+#            server (tag: deploy, shell executor). Pulls the published image
+#            and restarts the compose project.
+#
+# Server, runner, and CI variable setup: docs/deploy.md
+
+workflow:
+  rules:
+    # Avoid duplicate pipelines when a branch push has an open MR.
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+stages:
+  - verify
+  - publish
+  - deploy
+
+variables:
+  DOCKER_TLS_CERTDIR: ''
+
+verify:
+  stage: verify
+  image: node:22-alpine
+  interruptible: true
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npm run verify
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+publish:
+  stage: publish
+  image: docker:27
+  services:
+    - docker:27-dind
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$HUB_URL" --username "$CI_REGISTRY_USER" --password-stdin
+    - docker build -t "$HUB_URL/$APP_NAME:sha-$CI_COMMIT_SHORT_SHA" -t "$HUB_URL/$APP_NAME:main" .
+    - docker push "$HUB_URL/$APP_NAME:sha-$CI_COMMIT_SHORT_SHA"
+    - docker push "$HUB_URL/$APP_NAME:main"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+deploy:
+  stage: deploy
+  # Runs on the shell-executor runner installed on the production server.
+  tags:
+    - deploy
+  environment:
+    name: production
+  script:
+    - : "${DEPLOY_ENV_FILE:?DEPLOY_ENV_FILE must point at the server's env file - see docs/deploy.md}"
+    # The server's env file is the single source of truth for configuration;
+    # the pipeline never ships secrets, it only says which image tag to run.
+    - cp "$DEPLOY_ENV_FILE" .env
+    - export IMAGE_TAG="sha-$CI_COMMIT_SHORT_SHA"
+    - docker compose pull
+    - docker compose up -d --remove-orphans
+    - APP_PORT=$(grep -E '^APP_PORT=' .env | cut -d= -f2 | tr -d '[:space:]')
+    - |
+      echo "Smoke test: http://localhost:${APP_PORT:-8080}/healthz"
+      curl -fsS --max-time 5 --retry 10 --retry-delay 3 --retry-connrefused --retry-all-errors \
+        "http://localhost:${APP_PORT:-8080}/healthz"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
