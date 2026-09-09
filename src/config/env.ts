@@ -2,8 +2,9 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   VITE_APP_NAME: z.string().min(1).default('Vite React TS Starter'),
-  VITE_API_BASE_URL: z.string().url().default('http://localhost:3000'),
-  VITE_API_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
+  VITE_SITE_URL: z.string().url().default('https://notes.mzahran.tech'),
+  VITE_GISCUS_REPO_ID: z.string().optional(),
+  VITE_GISCUS_CATEGORY_ID: z.string().optional(),
   VITE_ENABLE_AXE: z
     .enum(['true', 'false'])
     .default('false')

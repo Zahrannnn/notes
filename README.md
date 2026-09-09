@@ -1,137 +1,69 @@
-<div align="center">
-  <img src="public/favicon.svg" width="72" alt="CORELIA Vite Starter logo" />
-  <h1>CORELIA Vite Starter</h1>
-  <p>A Vite + React starter for CORELIA apps that don't need a server.</p>
-</div>
+# notes.mzahran.tech
 
-<p align="center">
-  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React 19" />
-  <img src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white" alt="Vite 8" />
-  <img src="https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white" alt="TypeScript 6" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4" />
-  <img src="https://img.shields.io/badge/Vitest-4-6E9F18?logo=vitest&logoColor=white" alt="Vitest 4" />
-  <img src="https://img.shields.io/badge/Node-22-339933?logo=node.js&logoColor=white" alt="Node 22" />
-</p>
+Engineering notes by **Mohamed Osama Zahran** — debugging stories, open-source journeys,
+and frontend mechanics. English + Arabic (RTL). Live at **https://notes.mzahran.tech**.
 
-Features live in folders, forms are validated with Zod, tests and Docker and CI
-are already wired up. When a project does need SSR, use the
-`corelia-next-boilerplate` template instead: the conventions match, so moving
-between the two is not a rewrite.
+Built on the [vite-boilerplate](https://github.com/Zahrannnn/vite-boilerplate) with a
+content pipeline: **Markdown posts + react-markdown + Shiki + giscus**.
 
-## What's inside
+## Write a post
 
-- Vite 8 and React 19 on strict TypeScript, with `@/` imports and project references.
-- Feature folders under `src/features/<name>` that own their API calls, hooks, UI, and schemas. A scaffolder creates new ones: `npm run feature -- <name>`.
-- Zod at the edges. Env vars and forms are validated, and Axios errors reach components as one plain `ApiError` shape instead of leaking Axios internals.
-- Light, dark, and system themes with no flash on load. Tailwind v4 with CVA-based primitives.
-- Accessibility groundwork: skip links, visible focus, `jsx-a11y` lint rules, optional axe checks in dev.
-- Vitest + Testing Library with example tests, husky pre-commit, and a single `npm run verify` gate.
-- Deployment defaults: pinned Alpine Docker images, Nginx security headers, runtime env injection, GitLab CI.
+Drop a `.md` file into `src/content/posts/` — the filename is the slug
+(e.g. `2026-09-09-shadcn-select-overflow.md` → `/posts/2026-09-09-shadcn-select-overflow`).
 
-## Quick start
+Frontmatter (validated at build time — a bad post fails the build loudly):
 
-```bash
-nvm use              # Node 22 (.nvmrc)
-npm install
-cp .env.example .env
-npm run dev
+```markdown
+---
+title: "The line-clamp that wasn't"
+description: 'One-line summary used in lists, meta tags, and previews.'
+date: 2026-09-09
+tags: [css, tailwind, shadcn]
+lang: en # en | ar (ar renders RTL)
+---
 ```
 
-Open http://localhost:5173.
+Arabic posts (`lang: ar`) render RTL automatically and get `ar-EG` date formatting.
 
-> [!IMPORTANT]
-> `.env.example` is the env contract. Nothing that starts with `VITE_` is a
-> secret; it all ends up in the browser bundle. Real secrets belong on the
-> server. More in [SECURITY.md](SECURITY.md).
+## Features
 
-## Scripts
+- Build-time content pipeline: frontmatter validated with Zod, reading time computed
+- Shiki syntax highlighting (lazy-loaded language chunks)
+- Tag pages (`/tags/<tag>`), reading time, related posts
+- giscus comments (GitHub Discussions) — see "Enable comments"
+- Full SEO per page via react-helmet-async
+- Dark/light theme with no-flash boot script, WCAG 2.2 AA patterns, reduced-motion aware
 
-| Script                            | Purpose                                      |
-| --------------------------------- | -------------------------------------------- |
-| `npm run dev`                     | Vite dev server                              |
-| `npm run build`                   | Type-check, then production build            |
-| `npm run preview`                 | Preview the production build                 |
-| `npm run lint`                    | ESLint (typescript-eslint, jsx-a11y, hooks)  |
-| `npm run format` / `format:check` | Prettier                                     |
-| `npm run typecheck`               | `tsc -b` project-references check            |
-| `npm run test` / `test:run`       | Vitest watch / single run                    |
-| `npm run verify`                  | lint, typecheck, tests, build in one command |
-| `npm run feature -- <name>`       | Scaffold a feature module                    |
+## Enable comments (one time)
 
-Husky runs lint-staged at pre-commit: ESLint --fix and Prettier on staged files.
+1. Enable Discussions on this repo + create a **Comments** category
+2. Install https://github.com/apps/giscus
+3. Generate IDs at https://giscus.app (repo `Zahrannnn/notes`, category `Comments`)
+4. Put `VITE_GISCUS_REPO_ID` + `VITE_GISCUS_CATEGORY_ID` in your env (.env / Hostinger env.js)
+
+Until configured, the comments slot shows a hint instead — the site works fine without it.
+
+## Development
+
+```bash
+npm install
+npm run dev      # local dev
+npm run verify   # lint + typecheck + test + build  (required before pushing)
+```
+
+## Deploy (Hostinger via git)
+
+1. hPanel → Subdomains → `notes.mzahran.tech`
+2. Push `main`, then on the server (or via hPanel Git): clone, `npm ci && npm run build`,
+   point the subdomain doc root at `dist/` (nginx config in `nginx.conf` handles SPA
+   fallbacks for `/posts/*` routes)
+3. Enable SSL
 
 ## Architecture
 
-```text
-src/
-  app/            # providers, router, store, query client
-  components/     # ui primitives, layout, common, feedback
-  features/       # domain features, the core of the codebase
-  layouts/        # route layouts (App / Auth / Dashboard)
-  lib/            # API client, error normalization, file transfer
-  pages/          # route pages composed from feature exports
-  config/         # env validation
-```
+Feature-first (inherited from the boilerplate contract, see `AGENTS.md`):
 
-A feature keeps its endpoint functions in `api/`, Query hooks in `hooks/`,
-Zod schemas in `validations/`, and exports its public surface through one
-barrel `index.ts`. Other features import from there and nowhere else. Full
-rules in [docs/architecture.md](docs/architecture.md).
-
-### Who owns what
-
-| Concern                         | Owner                                 |
-| ------------------------------- | ------------------------------------- |
-| Server data                     | TanStack Query (devtools in dev only) |
-| Forms                           | React Hook Form + Zod                 |
-| State that must outlive a route | Redux Toolkit                         |
-| Everything else                 | React local state                     |
-
-Redux is wired up but most screens won't touch it. Start with local state and
-Query; promote to Redux only when state genuinely has to survive navigation.
-
-One convention worth keeping: wrap mutations in a feature hook (see
-`src/features/auth/hooks/useLoginMutation.ts`) so toasts, redirects, and cache
-invalidation stay consistent. Presentational components call the hook, never
-`useMutation` directly.
-
-## Environment
-
-```env
-VITE_APP_NAME=Vite React TS Starter
-VITE_API_BASE_URL=http://localhost:5000/api/v1
-VITE_API_TIMEOUT_MS=10000
-VITE_ENABLE_AXE=false
-```
-
-Env is checked by Zod at import time and the app refuses to boot on bad values.
-In Docker, `env.sh` rewrites `env.js` from container variables at startup, so
-changing `VITE_*` in `.env` and running `make up` is enough. No rebuild.
-
-## Deployment
-
-```bash
-make env       # create .env from the example, first time only
-make build     # build the image
-make up        # start, regenerates runtime env
-```
-
-The build stage is `node:22-alpine` with `npm ci`; the serving stage is
-`nginx:1.27-alpine` with gzip, security headers, and long-lived caching for
-hashed assets. Vendor libraries are split into their own chunks so app changes
-don't invalidate them.
-
-CI/CD: merge requests run the verify gate. A merge to `main` publishes the
-image as an immutable `sha-…` tag and deploys it to production through a
-gitlab-runner on the server, followed by a `/healthz` smoke test. Rollback is
-one click in GitLab environments. Server and runner setup: [docs/deploy.md](docs/deploy.md).
-
-## Documentation
-
-| Document                                     | Contents                                      |
-| -------------------------------------------- | --------------------------------------------- |
-| [docs/architecture.md](docs/architecture.md) | Layers, features, shared code, state, theming |
-| [docs/development.md](docs/development.md)   | Setup, env, feature CLI, hooks, Docker, CI    |
-| [docs/deploy.md](docs/deploy.md)             | Server, runner, and pipeline setup; rollback  |
-| [SECURITY.md](SECURITY.md)                   | CSP, XSS, tokens, secrets guidance            |
-| [AGENTS.md](AGENTS.md)                       | Workflow rules for agent-assisted edits       |
+- `src/features/posts/` — content pipeline (`api/posts.ts`), renderer (`components/`),
+  pages (`pages/PostPage`, `pages/TagPage`)
+- `src/content/posts/*.md` — the actual posts (source of truth)
+- App-only infrastructure (auth/redux/query/api) was stripped for this content site

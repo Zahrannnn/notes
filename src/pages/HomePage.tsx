@@ -1,48 +1,80 @@
 import { Link } from 'react-router-dom';
-import { routes } from '@/app/router/routes';
+import { postPath, tagPath } from '@/app/router/routes';
 import { SEO } from '@/components/common/SEO';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { getAllTags, getPostMetas } from '@/features/posts';
 
 export function HomePage() {
+  const metas = getPostMetas();
+  const tags = getAllTags();
+
   return (
     <>
-      <SEO title="Home" />
-      <section className="mx-auto grid max-w-6xl gap-8 px-4 py-16 md:grid-cols-[1.2fr_0.8fr] md:items-center">
-        <div>
-          <p className="text-sm font-bold uppercase tracking-wide text-brand-700 dark:text-brand-100">
-            Vite React TypeScript
-          </p>
-          <h1 className="mt-3 text-4xl font-bold text-slate-950 sm:text-5xl dark:text-slate-50">
-            A practical starter for client projects.
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-700 dark:text-slate-300">
-            Feature folders, typed state, validated forms, safe API defaults, accessible layouts,
-            and testing tools are already wired together.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild>
-              <Link to={routes.dashboard}>Open dashboard</Link>
-            </Button>
-            <Button asChild variant="secondary">
-              <Link to={routes.about}>View architecture</Link>
-            </Button>
+      <SEO
+        title="Notes"
+        description="Engineering notes by Mohamed Osama Zahran — CSS mechanics, open source, and building in public."
+      />
+
+      <section className="mx-auto max-w-3xl px-4 pt-12">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-50 sm:text-4xl">
+          Engineering notes
+        </h1>
+        <p className="mt-3 text-lg text-slate-400">
+          Debugging stories, open-source journeys, and frontend mechanics — by Mohamed Osama Zahran.
+          English and Arabic.
+        </p>
+        {tags.length > 0 && (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {tags.map(({ tag, count }) => (
+              <Link
+                key={tag}
+                to={tagPath(tag)}
+                className="rounded-full border border-sky-900 bg-sky-950/40 px-3 py-1 text-xs font-medium text-sky-300 hover:bg-sky-900/40"
+              >
+                #{tag} <span className="text-sky-700">{count}</span>
+              </Link>
+            ))}
           </div>
-        </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Included defaults</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="grid gap-3 text-slate-700 dark:text-slate-300">
-              <li>Strict TypeScript with absolute imports.</li>
-              <li>Redux Toolkit and TanStack Query providers.</li>
-              <li>Accessible forms with React Hook Form and Zod.</li>
-              <li>Testing with Vitest and Testing Library.</li>
-              <li>Light and dark theme with no flash on load.</li>
-            </ul>
-          </CardContent>
-        </Card>
+        )}
+      </section>
+
+      <section className="mx-auto max-w-3xl px-4 pb-24 pt-10">
+        <h2 className="sr-only">All posts</h2>
+        <ul className="divide-y divide-slate-800">
+          {metas.map((post) => (
+            <li key={post.slug} className="py-7">
+              <Link to={postPath(post.slug)} className="group block">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 className="text-xl font-semibold text-slate-100 group-hover:text-sky-300">
+                    {post.title}
+                  </h3>
+                  <time className="text-sm text-slate-500" dateTime={post.date}>
+                    {new Date(post.date).toLocaleDateString(
+                      post.lang === 'ar' ? 'ar-EG' : 'en-US',
+                      {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      },
+                    )}
+                  </time>
+                </div>
+                <p className="mt-2 text-slate-400">{post.description}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                  {post.lang === 'ar' && <span dir="rtl">العربية</span>}
+                  <span>{post.readingTimeMinutes} min read</span>
+                  {post.tags.slice(0, 3).map((t) => (
+                    <span key={t} className="text-sky-700">
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        {metas.length === 0 && (
+          <p className="text-slate-400">No posts yet — drop a .md file in src/content/posts.</p>
+        )}
       </section>
     </>
   );
