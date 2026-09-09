@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { env } from '@/config/env';
 
 type GiscusProps = {
   /** Enable after repo setup: see README "Enable comments" */
@@ -21,8 +22,8 @@ const CATEGORY = 'Comments' as const;
  */
 export function Giscus({ enabled = true }: GiscusProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const repoId = import.meta.env.VITE_GISCUS_REPO_ID as string | undefined;
-  const categoryId = import.meta.env.VITE_GISCUS_CATEGORY_ID as string | undefined;
+  const repoId = env.VITE_GISCUS_REPO_ID;
+  const categoryId = env.VITE_GISCUS_CATEGORY_ID;
 
   const configured = useMemo(() => Boolean(repoId && categoryId), [repoId, categoryId]);
 
