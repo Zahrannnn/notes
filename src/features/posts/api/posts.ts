@@ -52,7 +52,7 @@ function readingTimeMinutes(body: string): number {
   return Math.max(1, Math.round(words / 200));
 }
 
-const modules = import.meta.glob<string>('../../content/posts/*.md', {
+const modules = import.meta.glob<string>('/src/content/posts/*.md', {
   eager: true,
   query: '?raw',
   import: 'default',
