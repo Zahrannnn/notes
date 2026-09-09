@@ -2,10 +2,28 @@ import { Link } from 'react-router-dom';
 import { postPath, tagPath } from '@/app/router/routes';
 import { SEO } from '@/components/common/SEO';
 import { getAllTags, getPostMetas } from '@/features/posts';
+import type { Post } from '@/features/posts';
+
+type PostMeta = Omit<Post, 'body'>;
+
+function PostMetaRow({ post }: { post: PostMeta }) {
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+      {post.lang === 'ar' && <span dir="rtl">العربية</span>}
+      <span>{post.readingTimeMinutes} min</span>
+      {post.tags.slice(0, 3).map((t) => (
+        <span key={t} className="text-gold-ink dark:text-gold">
+          #{t}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export function HomePage() {
   const metas = getPostMetas();
   const tags = getAllTags();
+  const [latest, ...rest] = metas;
 
   return (
     <>
@@ -34,42 +52,56 @@ export function HomePage() {
       </section>
 
       <section className="mx-auto max-w-3xl px-4 pb-24 pt-10">
-        <h2 className="sr-only">All posts</h2>
-        <ul className="divide-y divide-slate-200 dark:divide-slate-800">
-          {metas.map((post) => (
-            <li key={post.slug} className="py-7">
-              <Link to={postPath(post.slug)} className="group block">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="text-xl font-semibold text-slate-950 group-hover:text-gold-ink dark:text-slate-100 dark:group-hover:text-gold">
-                    {post.title}
-                  </h3>
-                  <time className="text-sm text-slate-500" dateTime={post.date}>
-                    {new Date(post.date).toLocaleDateString(
-                      post.lang === 'ar' ? 'ar-EG' : 'en-US',
-                      {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      },
-                    )}
-                  </time>
-                </div>
-                <p className="mt-2 max-w-[65ch] text-slate-600 dark:text-slate-400">
-                  {post.description}
-                </p>
-                <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                  {post.lang === 'ar' && <span dir="rtl">العربية</span>}
-                  <span>{post.readingTimeMinutes} min</span>
-                  {post.tags.slice(0, 3).map((t) => (
-                    <span key={t} className="text-gold-ink dark:text-gold">
-                      #{t}
-                    </span>
-                  ))}
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {latest && (
+          <>
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+              Latest note
+            </p>
+            <Link to={postPath(latest.slug)} className="group mt-3 block">
+              <h2 className="text-2xl font-bold tracking-tight text-slate-950 group-hover:text-gold-ink dark:text-slate-50 dark:group-hover:text-gold sm:text-3xl">
+                {latest.title}
+              </h2>
+              <p className="mt-2 max-w-[65ch] text-slate-600 dark:text-slate-400">
+                {latest.description}
+              </p>
+              <PostMetaRow post={latest} />
+            </Link>
+          </>
+        )}
+
+        {rest.length > 0 && (
+          <>
+            <hr className="mt-10 border-slate-200 dark:border-slate-800" />
+            <h2 className="sr-only">More notes</h2>
+            <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+              {rest.map((post) => (
+                <li key={post.slug} className="py-7">
+                  <Link to={postPath(post.slug)} className="group block">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <h3 className="text-xl font-semibold text-slate-950 group-hover:text-gold-ink dark:text-slate-100 dark:group-hover:text-gold">
+                        {post.title}
+                      </h3>
+                      <time className="text-sm text-slate-500" dateTime={post.date}>
+                        {new Date(post.date).toLocaleDateString(
+                          post.lang === 'ar' ? 'ar-EG' : 'en-US',
+                          {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          },
+                        )}
+                      </time>
+                    </div>
+                    <p className="mt-2 max-w-[65ch] text-slate-600 dark:text-slate-400">
+                      {post.description}
+                    </p>
+                    <PostMetaRow post={post} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
         {metas.length === 0 && (
           <p className="text-slate-600 dark:text-slate-400">
             No posts yet: drop a .md file in src/content/posts.
