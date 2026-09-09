@@ -44,11 +44,33 @@ export function Giscus({ enabled = true }: GiscusProps) {
     script.setAttribute('data-reactions-enabled', '1');
     script.setAttribute('data-emit-metadata', '0');
     script.setAttribute('data-input-position', 'top');
-    script.setAttribute('data-theme', 'dark');
+    script.setAttribute(
+      'data-theme',
+      document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+    );
     script.setAttribute('data-lang', 'en');
 
     container.appendChild(script);
+
+    // Follow the app theme (html.dark) after mount via giscus's postMessage API.
+    const observer = new MutationObserver(() => {
+      const iframe = container.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
+      if (!iframe) return;
+      iframe.contentWindow?.postMessage(
+        {
+          giscus: {
+            setConfig: {
+              theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+            },
+          },
+        },
+        'https://giscus.app',
+      );
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
     return () => {
+      observer.disconnect();
       container.replaceChildren();
     };
   }, [enabled, configured, repoId, categoryId]);
@@ -57,9 +79,9 @@ export function Giscus({ enabled = true }: GiscusProps) {
 
   if (!configured) {
     return (
-      <p className="mt-10 rounded-lg border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-400">
-        Comments are ready to enable — set <code>VITE_GISCUS_REPO_ID</code> and{' '}
-        <code>VITE_GISCUS_CATEGORY_ID</code> (see README “Enable comments”).
+      <p className="mt-10 rounded-lg border border-slate-200 bg-slate-100 p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
+        Comments are ready to enable: set <code>VITE_GISCUS_REPO_ID</code> and{' '}
+        <code>VITE_GISCUS_CATEGORY_ID</code> (see README "Enable comments").
       </p>
     );
   }

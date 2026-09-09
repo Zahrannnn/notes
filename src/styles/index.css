@@ -3,10 +3,13 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-brand-50: #eef7ff;
-  --color-brand-100: #d9edff;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
+  /* mzahran.tech family: single gold accent (#cfa355 in dark, AA-safe ink variant in light) */
+  --color-gold: #cfa355;
+  --color-gold-ink: #8a6420;
+  --color-brand-50: #faf6ec;
+  --color-brand-100: #f3ecd9;
+  --color-brand-600: #8a6420;
+  --color-brand-700: #6f5119;
   --color-ink-950: #111827;
 }
 
@@ -39,8 +42,12 @@
   }
 
   :focus-visible {
-    outline: 3px solid var(--color-brand-600);
+    outline: 3px solid var(--color-gold-ink);
     outline-offset: 3px;
+  }
+
+  html.dark :focus-visible {
+    outline-color: var(--color-gold);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -61,5 +68,15 @@
 
   .skip-link:focus {
     @apply translate-y-0;
+  }
+
+  /* Family tag pill: gold accent, theme-aware (see DESIGN.md §10) */
+  .tag-pill {
+    @apply rounded-full border px-3 py-1 text-xs font-medium transition-colors;
+    @apply border-gold-ink/40 bg-gold-ink/5 text-gold-ink hover:bg-gold-ink/10;
+  }
+
+  .dark .tag-pill {
+    @apply border-gold/40 bg-gold/10 text-gold hover:bg-gold/20;
   }
 }
