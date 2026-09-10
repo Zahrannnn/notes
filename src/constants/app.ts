@@ -6,4 +6,6 @@ export const SITE_URLS = {
   resume: 'https://resume.mzahran.tech',
   notes: 'https://notes.mzahran.tech',
   github: 'https://github.com/Zahrannnn',
+  linkedin: 'https://www.linkedin.com/in/zahran-numberone',
+  email: 'mailto:info@mzahran.tech',
 } as const;
