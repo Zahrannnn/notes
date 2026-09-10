@@ -79,4 +79,42 @@
   .dark .tag-pill {
     @apply border-gold/40 bg-gold/10 text-gold hover:bg-gold/20;
   }
+
+  /* Index sheet: unfold motion, transform-only, disabled under reduced motion */
+  .nav-drop {
+    animation: nav-drop 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .nav-item {
+    animation: nav-item 360ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  @keyframes nav-drop {
+    from {
+      transform: translateY(-8px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes nav-item {
+    from {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-drop,
+    .nav-item {
+      animation: none;
+    }
+  }
 }
