@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { postPath, tagPath } from '@/app/router/routes';
 import { SEO } from '@/components/common/SEO';
-import { getAllTags, getPostMetas } from '@/features/posts';
-import type { Post } from '@/features/posts';
+import { getAllTags, getPostMetas, type Post } from '@/features/posts';
+import { getTrendingTopics } from '@/features/posts/topics';
 
 type PostMeta = Omit<Post, 'body'>;
 
@@ -23,23 +23,49 @@ function PostMetaRow({ post }: { post: PostMeta }) {
 export function HomePage() {
   const metas = getPostMetas();
   const tags = getAllTags();
+  const trending = getTrendingTopics();
   const [latest, ...rest] = metas;
 
   return (
     <>
       <SEO
         title="Notes"
-        description="Engineering notes by Mohamed Osama Zahran: CSS mechanics, open source, and building in public."
+        description="Engineering notes by Mohamed Osama Zahran — CSS mechanics, open source, and building in public."
       />
 
       <section className="mx-auto max-w-3xl px-4 pt-12">
         <h1 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50 sm:text-4xl">
           Engineering notes
         </h1>
-        <p className="mt-3 max-w-[65ch] text-lg text-slate-600 dark:text-slate-400">
-          Debugging stories, open-source journeys, and frontend mechanics by Mohamed Osama Zahran.
+        <p className="mt-3 text-lg text-slate-400">
+          Debugging stories, open-source journeys, and frontend mechanics — by Mohamed Osama Zahran.
           English and Arabic.
         </p>
+
+        {trending.length > 0 && (
+          <div className="mt-6 rounded-xl border border-gold-ink/30 bg-gold-ink/5 p-4 dark:border-gold/40 dark:bg-gold/10">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-gold-ink dark:text-gold">
+              🔥 Currently learning
+            </h2>
+            <div className="mt-3 space-y-2">
+              {trending.map((topic) => (
+                <Link
+                  key={topic.tag}
+                  to={tagPath(topic.tag)}
+                  className="group block rounded-lg px-2 py-1 transition-colors hover:bg-slate-900/5 dark:hover:bg-slate-800/60"
+                >
+                  <span className="font-semibold text-slate-950 group-hover:text-gold-ink dark:text-slate-50 dark:group-hover:text-gold">
+                    {topic.label} ↗
+                  </span>
+                  <span className="ml-2 text-sm text-slate-600 dark:text-slate-400">
+                    {topic.description}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {tags.length > 0 && (
           <div className="mt-5 flex flex-wrap gap-2">
             {tags.map(({ tag, count }) => (
@@ -102,10 +128,9 @@ export function HomePage() {
             </ul>
           </>
         )}
+
         {metas.length === 0 && (
-          <p className="text-slate-600 dark:text-slate-400">
-            No posts yet: drop a .md file in src/content/posts.
-          </p>
+          <p className="text-slate-400">No posts yet — drop a .md file in src/content/posts.</p>
         )}
       </section>
     </>
